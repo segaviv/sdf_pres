@@ -1,0 +1,31 @@
+.title {
+}
+
+.snail_img {
+}
+
+.titleExamples {
+  display: flex;
+  flex-direction: row;
+}
+
+.titleExample {
+  flex: 1 1 auto auto;
+}
+
+.titleExampleImg {
+  margin-bottom: 0px;
+}
+
+.titleExampleDesc {
+  font-size: medium;
+  bottom: 20px;
+}
+
+.titleExampleCred {
+  font-size: small;
+  color: red;
+  position: relative;
+  bottom: 35px;
+
+}
