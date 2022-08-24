@@ -26,9 +26,9 @@ const fsSource = `
       vec2 p = (gl_FragCoord.xy / res - 0.5) * 2.;
       p.x *= res.x / res.y;
 
-      vec3 camPos = vec3(0.0, 0.0, -2.0);
-      vec3 d = normalize(vec3(p, 0) - camPos);
-      float res = map(camPos, d).x;
+      vec3 ro = vec3(0.0, 0.0, 2.0);
+      vec3 rd = normalize(vec3(p, -1.2));
+      float res = map(ro, rd).x;
       gl_FragColor = vec4(res, res, 0.0, 1.0);
     }
   `;
