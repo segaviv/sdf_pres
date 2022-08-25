@@ -5,16 +5,14 @@
   justify-content: center;
 }
 
-.snail_img {
-}
-
 .titleExamples {
   display: flex;
   flex-direction: row;
 }
 
 .titleExample {
-  flex: 1 1 auto auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .titleExampleImg {
@@ -23,7 +21,7 @@
 
 .titleExampleDesc {
   font-size: medium;
-  bottom: 20px;
+  top: -20px;
 }
 
 .titleExampleCred {
