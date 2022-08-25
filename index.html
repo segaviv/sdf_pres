@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE11" />
+  <meta charset="utf-8">
   <link rel="stylesheet" href="./node_modules/reveal.js/dist/reveal.css" />
   <link rel="stylesheet" href="./agate.css">
   <link rel="stylesheet" href="./node_modules/reveal.js/dist/reset.css" />
@@ -10,14 +10,13 @@
   <link rel="stylesheet" href="./slides/slides.css" />
   <link rel="stylesheet" href="./node_modules/reveal.js/dist/theme/white.css" />
   <script type="module" src="./scripts/init_reveal.js"></script>
-  <script src="plugin/external.js" defer></script>
 </head>
 
 <body>
   <div class="reveal">
     <div class="slides">
       <!-- Title. -->
-      <section class="slide" data-external="slides/title.html"></section>
+      <section style="height: 100%;" data-auto-animate data-external="slides/title.html"></section>
       <!-- Intro slides. ~ 3 minutes-->
       <section class="slide" data-auto-animate data-external="slides/intro/what.html">
       </section>
@@ -76,5 +75,6 @@
     </div>
   </div>
 </body>
+<script src="plugin/external.js"></script>
 
 </html>
