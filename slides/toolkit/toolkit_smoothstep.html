@@ -3,7 +3,22 @@
 <p style="text-align: start;">
   <ul style="display: block;">
     <li>Smoothstep</li>
-    <div data-id="ss" style="width: 50%; height:200px; border: 1px solid black;"></div>
+    <div style="display: flex; flex-direction: column; justify-content: space-around;">
+      <div>
+        <pre>
+          <code data-id="code" data-trim data-noescape>
+            void main() {
+              vec2 p = gl_fragCoord.xy / resolution * 2.0 - 1.0;
+              vec3 color = smoothstep(0.2, 0.5, length(p));
+              gl_FragColor = vec4(color, 1.0);
+            }
+          </code>
+        </pre>
+      </div>
+      <div>
+        <img src="../res/ss_1.png" />
+        </div>
+    </div>
     <li>Domain deformations</li>
     <li>Boolean operators between shapes</li>
     <li>Rounding</li>
