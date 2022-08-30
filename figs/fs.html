@@ -1,19 +1,24 @@
 <html>
 
-<body style="height: 100%; width: 90%">
-  <div style="display: flex; justify-content: space-between">
-    <div style="height: 100vh; width: 45%">
+<body style="height: 100%; width: 100%; display: flex; justify-content: center;">
+  <div style="display: flex; height: 100%; width: 95%; ">
+    <div style="height: 100%; flex:auto; margin-right: 20px;">
       <canvas style="height: 100%; width: 100%" id="canvas" class="canvas">
       </canvas>
     </div>
-    <div style="height: 100vh; width: 45%">
+    <div id="code" style="height: 100%; width: 50%">
       <textarea rows="50" id="textarea" style="height: 100%; width: 100%">
-        </textarea>
+      </textarea>
     </div>
   </div>
 </body>
 
 <script>
+
+  const autoUniformRegex = /\/\*([a-z\d]+)\*\/\s+([a-zA-Z\d]+)/g;
+
+  const codeElem = document.getElementById('code');
+
   const vsSource =
     "attribute vec4 aVertexPosition; void main(){gl_Position = aVertexPosition;}";
 
@@ -22,10 +27,9 @@
     uniform vec2 res;
 
     void main() {
-      vec2 p = (gl_FragCoord.xy / res - 0.5) * 2.;
-      p.x *= res.x / res.y;
+      vec2 p = gl_FragCoord.xy - res / 2.;
 
-      gl_FragColor = vec4(vec3(length(p)), 1.0);
+      gl_FragColor = vec4(vec3(clamp(length(p) / (res / 6.), 0., 1.)), 1.0);
     }
   `;
 
@@ -185,6 +189,17 @@
     });
     return res;
   }
+
+  window.addEventListener('keydown', (event) => {
+    if (event.code == 'Backquote') {
+      if (codeElem.style.display == 'none') {
+        codeElem.style.display = '';
+      } else {
+        codeElem.style.display = 'none';
+      }
+    }
+  });
+
 </script>
 
 </html>
