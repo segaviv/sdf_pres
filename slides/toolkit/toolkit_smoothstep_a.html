@@ -1,19 +1,19 @@
 <h3>Math toolkit</h3>
 
 <p style="text-align: start;">
-  <ul>
+  <ul style="display: block;">
     <li>Smoothstep</li>
-    <div style="display: flex; flex-direction: column; flex:auto">
+    <div style="display: flex; flex-direction: column; justify-content: space-around;">
       <pre>
         <code data-id="code" data-trim data-noescape style="font-size: medium;">
           void main() {
-            float mixFactor = sdCirc(p) < 0.? 0. : 1.;
+            float mixFactor = linstep(-0.2, 0.2, sdCirc(p));
             color = mix(RED, WHITE, mixFactor);
           }
         </code>
       </pre>
-      <div style="flex: 1 1 auto; min-height: 1px;">
-        <img data-id="circ_img" src="circ_step.png" />
+      <div style="height: 30%;">
+        <img data-id="circ_img" src="circ_linear.png" />
         </div>
     </div>
     <li>Domain deformations</li>

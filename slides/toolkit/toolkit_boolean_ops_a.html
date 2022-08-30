@@ -2,24 +2,27 @@
 
 <p style="text-align: start;">
   <ul style="display: block;">
-    <li>Domain deformations</li>
+    <li>Boolean operators between shapes</li>
     <div style="display: flex; flex-direction: column; justify-content: space-around;">
       <div>
         <pre data-id="code">
-          <code data-trim data-noescape style="font-size: medium;">
+          <code data-trim data-noescape data-line-numbers="" style="font-size: medium;">
             void main() {
-              float mixFactor = smoothstep(-0.05, 0.05, sdCirc(p));
+              float d1 = sdCirc(p - vec2(0.2, 0.));
+              float d2 = sdCirc(p + vec2(0.2, 0.));
+              float dist = smoothmin(d1, d2, 0.4);
+              float mixFactor = smoothstep(-0.05, 0.05, dist);
               color = mix(RED, WHITE, mixFactor);
             }
           </code>
         </pre>
       </div>
       <div>
-        <img src="sphere_sharp.png" />
+        <img src="sphere_union_smooth.png" />
         </div>
     </div>
-    <li>Boolean operators between shapes</li>
     <li>Useful functions</li>
     <li>Smoothstep</li>
+    <li>Domain deformations</li>
   </ul>
 </p>

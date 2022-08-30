@@ -8,8 +8,12 @@
     #define RADIUS 0.5
     #define RED vec3(0.8, 0.1, 0.3)
     #define WHITE vec3(1.0)
+    float sdCirc(vec2 p) {
+      return ength(p) - RADIUS;
+     }
     void main() {
-      color = length(p) - RADIUS < 0.? RED : WHITE;
+      float dist = sdCirc(p);
+      color = dist < 0.? RED : WHITE;
     }
   </code>
 </pre>
