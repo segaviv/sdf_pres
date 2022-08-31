@@ -1,0 +1,11 @@
+<div style="height:100%;flex-direction:column;display:flex"> <h3>Math toolkit</h3> <h5>Boolean operations</h5> <div style="display:block"> <pre data-id="code">
+      <code data-trim="" data-noescape="" data-line-numbers="4" style="font-size:medium">
+        void main() {
+          float d1 = sdCirc(p - vec2(0.2, 0.));
+          float d2 = sdCirc(p + vec2(0.2, 0.));
+          float dist = smoothmax(-d1, d2, 0.1);
+          float mixFactor = smoothstep(-0.05, 0.05, dist);
+          gl_FragColor = mix(RED, WHITE, mixFactor);
+        }
+      </code>
+    </pre> </div> <div style="min-height:1px;flex:auto"> <img data-id="circ_img" src="/sphere_sub_smooth.a73cea3e.png"> </div> </div>
