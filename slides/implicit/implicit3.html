@@ -3,13 +3,13 @@
         vec2 d = abs(p)-b;
         return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
       }
-    </code></pre> <img src="box.b5d3045d.png" style="margin:0 0 0 auto"> </div> <div style="height:30%;justify-content:space-between;display:flex"> <pre style="width:-moz-fit-content;width:-moz-fit-content;width:fit-content;margin-top:0;margin-left:0"><code data-trim="" data-noescape="" style="font-size:small">
+    </code></pre> <img src="https://segaviv.github.io/sdf_pres/box.b5d3045d.png" style="margin:0 0 0 auto"> </div> <div style="height:30%;justify-content:space-between;display:flex"> <pre style="width:-moz-fit-content;width:-moz-fit-content;width:fit-content;margin-top:0;margin-left:0"><code data-trim="" data-noescape="" style="font-size:small">
       float sdHeart(vec2 p, vec2 a, vec2 b) {
         p.x = abs(p.x);
         return p.y+p.x>1.0 ? sqrt(dot2(p-a))-sqrt(2.0)/4.0
         : sqrt(min(dot2(p-b), dot2(p-0.5*max(p.x+p.y,0.0)))) * sign(p.x-p.y);
       }
-    </code></pre> <img src="heart.5cfde39c.png" style="margin:0 0 0 auto"> </div> <div style="height:30%;justify-content:space-between;display:flex"> <pre style="width:-moz-fit-content;width:-moz-fit-content;width:fit-content;height:100%;margin-top:0;margin-left:0">
+    </code></pre> <img src="https://segaviv.github.io/sdf_pres/heart.5cfde39c.png" style="margin:0 0 0 auto"> </div> <div style="height:30%;justify-content:space-between;display:flex"> <pre style="width:-moz-fit-content;width:-moz-fit-content;width:fit-content;height:100%;margin-top:0;margin-left:0">
         <code data-trim="" data-noescape="" style="height:100%;font-size:small;line-height:150%">
         float sdUnevenCapsule( vec2 p, float r1, float r2, float h ) {
             p.x = abs(p.x);
@@ -20,4 +20,4 @@
             if( k > a*h ) return length(p-vec2(0.0,h)) - r2;
             return dot(p, vec2(a,b) ) - r1;
         }
-    </code></pre> <img src="box.b5d3045d.png" style="margin:0 0 0 auto"> </div> </div> </div>
+    </code></pre> <img src="https://segaviv.github.io/sdf_pres/box.b5d3045d.png" style="margin:0 0 0 auto"> </div> </div> </div>
