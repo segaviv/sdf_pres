@@ -1,25 +1,19 @@
-<h3>Math toolkit</h3>
+<div style="display: flex; flex-direction: column; height: 100%;">
 
-<p style="text-align: start;">
-<ul style="display: block;">
-  <li>Smoothstep</li>
-  <div
-    style="display: flex; flex-direction: column; justify-content: space-around;">
-    <pre>
-        <code data-id="code" data-trim data-noescape style="font-size: medium;">
-          void main() {
-            float mixFactor = linstep(-0.2, 0.2, sdCirc(p));
-            gl_FragColor = mix(RED, WHITE, mixFactor);
-          }
-        </code>
-      </pre>
-    <div style="position: absolute; bottom: 0; 
-    height: 50vh; display: flex; justify-content: center; width: 100%;">
-      <img data-id="circ_img" src="circ_linear.png" />
-    </div>
-  </div>
-  <li style="margin-top: 100vh;">Domain deformations</li>
-  <li>Boolean operators between shapes</li>
-  <li>Useful functions</li>
-</ul>
-</p>
+<h3>Math toolkit</h3>
+<h5>Smoothstep</h5>
+
+<div style="display: block;">
+<pre>
+    <code data-id="code" data-trim data-noescape style="font-size: medium;">
+      void main() {
+        float mixFactor = linstep(-0.2, 0.2, sdCirc(p));
+        gl_FragColor = mix(RED, WHITE, mixFactor);
+      }
+    </code>
+  </pre>
+</div>
+<div style="min-height: 1px; flex: auto;">
+  <img data-id="circ_img" src="circ_linear.png" />
+</div>
+</div>
