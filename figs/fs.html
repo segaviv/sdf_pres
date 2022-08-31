@@ -1,6 +1,8 @@
 <html>
 
 <body style="height: 100%; width: 100%; display: flex; justify-content: center;">
+  <div id="uniform_editor" style="position: absolute; right: 20px; display: none;">
+  </div>
   <div style="display: flex; height: 100%; width: 95%; ">
     <div style="height: 100%; flex:auto; margin-right: 20px;">
       <canvas style="height: 100%; width: 100%" id="canvas" class="canvas">
@@ -15,23 +17,25 @@
 
 <script>
 
-  const autoUniformRegex = /\/\*([a-z\d]+)\*\/\s+([a-zA-Z\d]+)/g;
+  const autoUniformRegex = /\/\*\s*([a-z\d]+)\s*\*\/\s*([a-zA-Z\d]+)/g;
 
   const codeElem = document.getElementById('code');
-
+  const uniformEditor = document.getElementById('uniform_editor');
+  const FLOAT_PRECISION = 'precision highp float;'
   const vsSource =
     "attribute vec4 aVertexPosition; void main(){gl_Position = aVertexPosition;}";
 
   const fsSource = `
-    precision highp float;
     uniform vec2 res;
 
     void main() {
       vec2 p = gl_FragCoord.xy - res / 2.;
 
-      gl_FragColor = vec4(vec3(clamp(length(p) / (res / 6.), 0., 1.)), 1.0);
+      gl_FragColor = vec4(1.0);
     }
   `;
+
+  const AUTO_COMPILE_DELAY_MS = 100;
 
   const canvas = document.getElementById("canvas");
   canvas.width = canvas.clientWidth;
@@ -40,10 +44,12 @@
   const input = document.getElementById("textarea");
   input.value = fsSource;
 
+  let bAutoCompile = false;
   let gShaderProgram = null;
   let gBuffers = null;
   let triggerCompilerTimeout = null;
   let compilePromise = null;
+  let gUniforms = new Map();
 
   function initBuffers(gl) {
     const positionBuffer = gl.createBuffer();
@@ -131,39 +137,67 @@
   }
 
   function init() {
-    gShaderProgram = initShaderProgram(gl, vsSource, fsSource);
     gBuffers = initBuffers(gl);
-    const programInfo = {
-      program: gShaderProgram,
-      attribLocations: {
-        vertexPosition: gl.getAttribLocation(
-          gShaderProgram,
-          "aVertexPosition"
-        ),
-      },
-      uniformLocations: {
-        res: gl.getUniformLocation(gShaderProgram, "res"),
-      },
-    };
-    //drawScene(canvas, gl, programInfo, gBuffers);
     compilePromise = compile();
   }
 
   init();
 
+  function defaultValueForType(type) {
+    switch (type) {
+      case 'int':
+        return 0;
+      case 'float':
+        return 0.0;
+      case 'vec2':
+        return [0.0, 0.0];
+      case 'vec3':
+        return [0.0, 0.0, 0.0];
+      case 'vec4':
+        return [0.0, 0.0, 0.0, 0.0];
+    }
+    return '';
+  }
+
+  function extractUniforms() {
+    const uniforms = [...input.value.matchAll(autoUniformRegex)];
+    const unfirmNames = new Set(uniforms.map(u => u[2]));
+    // Remove uniforms that don't exist anymore.
+    [...gUniforms.keys()]
+      .filter(x => !unfirmNames.has(x)).forEach(u => gUniforms.delete(u));
+    // Add new uniforms.
+    uniforms.forEach(u => {
+      if (!gUniforms.has(u) || gUniforms.get(u)['type'] != u[1])
+      gUniforms.set(u[2], {type: u[1], value: defaultValueForType(u[1])});
+    });
+  }
+
+  function getUniformString() {
+    extractUniforms();
+    let str = '';
+    gUniforms.forEach((u, name) => {
+      str += `uniform ${u.type} ${name};`;
+    });
+    return str;
+  }
+
   /* Auto compile */
   input.oninput = () => {
+    if (!bAutoCompile) {
+      return;
+    }
     if (triggerCompilerTimeout) {
       clearTimeout(triggerCompilerTimeout);
     }
     setTimeout(() => {
       compilePromise = compile();
-    }, 100);
+    }, AUTO_COMPILE_DELAY_MS);
   };
 
   async function compile() {
     const res = new Promise((resolve, reject) => {
-      const shaderProg = initShaderProgram(gl, vsSource, input.value);
+      const fShader = FLOAT_PRECISION + getUniformString() + input.value;
+      const shaderProg = initShaderProgram(gl, vsSource, fShader);
       if (!shaderProg) {
         reject();
       }
@@ -197,6 +231,8 @@
       } else {
         codeElem.style.display = 'none';
       }
+    } else if (event.code == 'Enter' && event.ctrlKey) {
+       compilePromise = compile();
     }
   });
 
