@@ -6,7 +6,6 @@ import RevealMath from "reveal.js/plugin/math/math.esm";
 import { Reveald3 } from "../plugin/reveald3";
 
 let deck = new Reveal({
-  
   plugins: [RevealHighlight, Markdown, Reveald3, RevealZoom, RevealMath.KaTeX],
 });
 deck.initialize();

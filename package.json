@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "SDF presentation.",
   "scripts": {
-    "start": "parcel *.html  figs/*.html slides/*.html slides/*/*.html slides/res/*",
+    "start": "parcel *.html live_stuff/*.html  figs/*.html slides/*.html slides/*/*.html slides/res/*",
     "predeploy": "rm -rf dist && parcel build --public-url 'https://segaviv.github.io/sdf_pres' *.html  figs/*.html slides/*.html slides/*/*.html slides/res/*",
     "deploy": "gh-pages -d dist"
   },

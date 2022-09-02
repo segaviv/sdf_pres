@@ -1,0 +1,11 @@
+.redBackground {
+  background-color: #e4153e99
+}
+
+.floatingEditor {
+  position: absolute;
+  opacity: 93%;
+  right: 10px; 
+  top: 5%;
+  height: 90%;
+}
