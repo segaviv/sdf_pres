@@ -75,18 +75,46 @@
   const fsSource = `
     #define RED vec3(1.0, 0.0, 0.0)
     #define WHITE vec3(1.0, 1.0, 1.0)
+    #define BLACK vec3(0.0)
 
     float linstep(float a, float b, float x) {
       return clamp((x-a) / (b-a), 0., 1.);
     }
 
-    void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-      vec2 p = fragCoord / res * 2.0 - 1.0;
-      p.x *= res.x / res.y;
+    vec4 leftSide(vec2 p) {
+      p.x += (res.x / res.y) / 2.;
       float d = length(p) - 0.5;
       float t = step(0., d) * (1.-/*float*/a) + a*linstep(-0.2, 0.2, d);
       t = t * (1. - /*float*/b) + b * smoothstep(-0.2, 0.2, d);
-      fragColor = vec4(mix(RED, WHITE, t), 1.0);
+      return vec4(mix(RED, WHITE, t), 1.0);
+    }
+
+    vec4 rightSide(vec2 p) {
+      float aspect_ratio = res.x / res.y;
+      p.x = (p.x - (aspect_ratio) / 2.) * 1.2 + (aspect_ratio) / 2.;
+      p.y = p.y * 1.2;
+      float stepf = step((aspect_ratio) / 2., p.x);
+      float linf = linstep(0., (aspect_ratio), p.x);
+      float smoothf = smoothstep(0., (aspect_ratio), p.x);
+      float t = stepf * (1. - a) + a * linf;
+      float t2 = t * (1. - b) + b * smoothf;
+
+      vec3 col = mix(BLACK, WHITE, smoothstep(0., 0.02, abs(t2-(p.y+1.)/2.)));
+      if ((p.y + 1.) / 2. < t && (p.y + 1.) / 2. > 1. - t) {
+      col *= 
+       step(0.02, abs(p.x - aspect_ratio/2.));
+      }
+      return vec4(col, 1.);
+    }
+
+    void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+      vec2 p = fragCoord / res * 2.0 - 1.0;
+      p.x *= res.x / res.y;
+      if (p.x < 0.) {
+        fragColor = leftSide(p);
+      } else {
+        fragColor = rightSide(p);
+      }
     }
   `;
 
@@ -291,14 +319,14 @@
       case 'int':
         return 0;
       case 'float':
-        return 0.1;
+        return 0.0;
       case 'vec2':
-        return [0.1, 0.1];
+        return [0.0, 0.0];
       case 'vec3':
       case 'col':
-        return [0.1, 0.1, 0.1];
+        return [0.0, 0.0, 0.0];
       case 'vec4':
-        return [0.1, 0.1, 0.1, 0.1];
+        return [0.0, 0.0, 0.0, 0.0];
     }
     return '';
   }
