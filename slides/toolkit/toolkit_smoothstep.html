@@ -1,8 +1,22 @@
-<div style="height:100%;flex-direction:column;display:flex"> <h3>Math toolkit</h3> <h5>Smoothstep</h5> <div style="display:block"> <pre>
+<div style="height:100%;flex-direction:column;display:flex"> <h3>Math toolkit</h3> <h5>Smoothstep</h5> <div style="height:inherit;display:block;position:relative"> <pre style="position:absolute;top:0;left:0" class="fade-out fragment" data-fragment-index="1">
   <code data-id="code" data-trim="" data-noescape="" style="font-size:medium">
     void main() {
       float mixFactor = sdCirc(p) < 0.? 0. : 1.;
       gl_FragColor = mix(RED, WHITE, mixFactor);
     }
   </code>
-</pre> </div> <div style="min-height:1px;flex:auto"> <img data-id="circ_img" src="https://segaviv.github.io/sdf_pres/circ_step.14454f2c.png"> </div> </div>
+</pre> <pre style="position:absolute;top:0;left:0" class="fade-in fragment" data-fragment-index="1">
+    <code data-id="code" data-trim="" data-noescape="" data-line-numbers="2" style="font-size:medium">
+      void main() {
+        float mixFactor = linstep(-0.2, 0.2, sdCirc(p));
+        gl_FragColor = mix(RED, WHITE, mixFactor);
+      }
+    </code>
+  </pre> <div class="fade-out fragment" data-fragment-index="2"></div> <pre style="position:absolute;top:0;left:0" class="fade-in fragment" data-fragment-index="3">
+    <code data-id="code" data-trim="" data-noescape="" data-line-numbers="2" style="font-size:medium">
+      void main() {
+        float mixFactor = smoothstep(-0.2, 0.2, sdCirc(p));
+        gl_FragColor = mix(RED, WHITE, mixFactor);
+      }
+    </code>
+  </pre> </div> <div style="min-height:1px;flex:auto"> <div style="height:100%;width:100%;min-height:1px" class="fig-container" data-file="slides/toolkit/toolkit_smoothstep_live.html"> </div> </div> </div>
