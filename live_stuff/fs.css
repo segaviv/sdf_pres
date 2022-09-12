@@ -1,3 +1,12 @@
+html {
+  height: 100vh;
+  width: 100vw;
+}
+
+body {
+  margin: 0;
+}
+
 .redBackground {
   background-color: #e4153e99
 }
@@ -8,4 +17,18 @@
   right: 10px; 
   top: 5%;
   height: 90%;
+  max-width: 70vw;
+}
+
+.floatingViewer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+table {
+  border-collapse: collapse;
+  border: 1px solid black;
 }

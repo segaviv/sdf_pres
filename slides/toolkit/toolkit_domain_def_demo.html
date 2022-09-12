@@ -1,0 +1,104 @@
+<div style="display: flex; flex-direction: column; height: 100%;">
+<h5>Domain deformation</h5>
+
+<div style="display: block; position: relative; height: inherit;">
+<pre style="position: absolute; left:0; top:0;"
+class="fragment fade-out" data-fragment-index="1">
+  <code data-id="code" data-trim data-noescape style="font-size: medium;">
+    void main(out vec4 gl_FragColor, in vec2 p) {
+      float dist = sdCircle(p);
+      gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+    }
+  </code>
+</pre>
+<pre style="position: absolute; left:0; top:0"
+class="fragment fade-in" data-fragment-index="1">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main(out vec4 gl_FragColor, in vec2 p) {
+        p += vec2(0.23, 0.45);
+        float dist = sdCircle(p);
+         gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+      }
+    </code>
+</pre>
+  <div class="fragment fade-out" data-fragment-index="2"></div>
+  <pre style="position: absolute; left:0; top:0"
+  class="fragment fade-in" data-fragment-index="3">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main(out vec4 gl_FragColor, in vec2 p) {
+        p *= vec2(1.1, 0.7);
+        // ...
+        float dist = sdCircle(p);
+         gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+      }
+    </code>
+  </pre>
+  <div class="fragment fade-out" data-fragment-index="4"></div>
+  <pre style="position: absolute; left:0; top:0"
+  class="fragment fade-in" data-fragment-index="5">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main(out vec4 gl_FragColor, in vec2 p) {
+        p = mat2(cos(ang), sin(ang), -sin(ang), cos(ang)) * p;
+        // ...
+        float dist = sdCircle(p);
+         gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+      }
+    </code>
+  </pre>
+  <div class="fragment fade-out" data-fragment-index="6"></div>
+  <pre style="position: absolute; left:0; top:0"
+  class="fragment fade-in" data-fragment-index="7">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main(out vec4 gl_FragColor, in vec2 p) {
+        p.y -= pow(abs(p.x), 1.2);
+        // ...
+        float dist = sdCircle(p);
+         gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+      }
+    </code>
+  </pre>
+  <div class="fragment fade-out" data-fragment-index="8"></div>
+  <pre style="position: absolute; left:0; top:0"
+  class="fragment fade-in" data-fragment-index="9">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main(out vec4 gl_FragColor, in vec2 p) {
+        p.y = abs(p.y);
+        // ...
+        float dist = sdCircle(p);
+         gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+      }
+    </code>
+  </pre>
+  <div class="fragment fade-out" data-fragment-index="10"></div>
+  <div class="fragment fade-out" data-fragment-index="11"></div>
+  <pre style="position: absolute; left:0; top:0"
+  class="fragment fade-in" data-fragment-index="12">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main(out vec4 gl_FragColor, in vec2 p) {
+        p = mod(p, 1.5);
+        // ...
+        float dist = sdCircle(p);
+         gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+      }
+    </code>
+  </pre>
+  <div class="fragment fade-out" data-fragment-index="13"></div>
+  <pre style="position: absolute; left:0; top:0"
+  class="fragment fade-in" data-fragment-index="14">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main(out vec4 gl_FragColor, in vec2 p) {
+        vec2 index = floor(p / 1.5);
+        // ...
+        float dist = sdCircle(p);
+         gl_FragColor = mix(CIRC_COLOR, BACKGROUND, smoothstep(0,0.2, dist));
+      }
+    </code>
+  </pre>
+</div>
+<div style="min-height: 1px; flex: auto;">
+  <div style="height: 100%; width: 100%; min-height: 1px;"
+  class="fig-container" data-file="slides/toolkit/toolkit_domain_def_live.html">
+  </div>
+</div>
+
+</div>

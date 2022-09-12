@@ -1,6 +1,6 @@
 <h3>Drawing shapes</h3>
 
-<p style="text-align: start;font-size:xx-large">
+<p style="text-align: start;font-size:x-large">
 A shape is represented as an implicit function 
 <p style="font-size:x-large">
 \[
@@ -13,15 +13,28 @@ f(x)=\begin{cases}
 </p>
 </p>
 
-<p style="text-align: start; font-size:xx-large">
+<div style="display: flex; width: 100%; justify-content: space-between;">
+<div style="display: flex; flex-direction: column; ">
+<p style="text-align: start; font-size:x-large; margin: 0;" class="fragment">
 For instance, a circle will be:  
-$\space f(x)=x^2+y^2-r^2$
-
+\[
+ f(x)=\sqrt{x^2+y^2}-r = \left \| \overrightarrow{v} \right \|_2 - r
+ \]
 </p>
-
-<div style="display: flex; justify-content: center;">
-<div style="height: 10vw; 
-width: 10vw; background-color: aliceblue; 
-border-radius: 50%;
-border: 3px solid black;"></div>
+<p class="fragment fade-in" style="text-align: start; font-size:x-large;">
+  Is it the only implicit representation for a cricle?
+</p>
+<p class="fragment fade-in" style="text-align: start; font-size:x-large; line-height: 40px;">
+  Nope, $\space g(x) = 5 f(x)$ and
+   $\space g(x) = e^{\frac{\left \| \overrightarrow{v} \right \|_2}{r} - 1} - 1$
+   are also implicit representations of a circle.
+</p>
 </div>
+<div style="display: flex; justify-content: center; align-self: center;">
+  <div style="height: 10vw; 
+  width: 10vw; background-color: aliceblue; 
+  border-radius: 50%;
+  border: 3px solid black;"></div>
+  </div>
+</div>
+

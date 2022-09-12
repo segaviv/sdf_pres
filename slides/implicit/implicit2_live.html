@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html style="background-color: #FFFFFF; height: 100%; width: 100%;">
+
+<script type="text/javascript" src="../../live_stuff/dat.gui.min.js"></script>
+<script src="../../live_stuff/js-snackbar.min.js"></script>
+<link rel="stylesheet" href="../../live_stuff/codemirror.css">
+<link rel="stylesheet" href="../../live_stuff/fs.css">
+<script src="../../live_stuff/codemirror.js"></script>
+<script src="../../live_stuff/glsl.js"></script>
+<link rel="stylesheet" href="../../live_stuff/js-snackbar.min.css" />
+<script type="text/javascript" src="../../live_stuff/show-hint.js"></script>
+<link type='text/css' rel="stylesheet" href="../../live_stuff/show-hint.css">
+
+<body style="height: 100%; width: 100%; display: flex; justify-content: center;
+  overflow: hidden;">
+  <div style="display: flex; height: 100%; width: 95%;">
+    <div style="height: 100%; flex: auto; margin-right: 20px;
+        display: flex; align-items: center; justify-content: center; 
+        flex-direction: column;">
+      <canvas
+        style="height: 400px; width: 400px;"
+        id="canvas" class="canvas">
+      </canvas>
+      <div id="controls" style="width: 100%; background-color:aliceblue;
+      display: flex;">
+        <div style=" display: flex;">
+          <span id="time" contenteditable
+            style="margin-right: 2px; margin-left: 2px;">
+            0.00</span>s
+        </div>
+      </div>
+    </div>
+    <div id="code" style="top: 5%; height: 90%;
+       opacity: 90%; display: flex; align-items: center;">
+      <textarea id="textarea" style="height: 100%; width: 100%">
+      </textarea>
+    </div>
+  </div>
+  <div style="display: block;
+    position: absolute; bottom: 0px; left: 10px; right: 10px;">
+    <input id="command" style="width: 100%; display: none;">
+  </div>
+</body>
+
+<script>
+
+  const autoUniformRegex = /\/\*\s*([a-z\d]+)\s*\*\/\s*([a-zA-Z\d]+)/g;
+  const assignmentRegex = /([a-zA-Z\d]+)\s*\=/g;
+
+  const codeElem = document.getElementById('code');
+  const commandElem = document.getElementById('command');
+  const timeElem = document.getElementById('time');
+  const FLOAT_PRECISION = `#version 300 es
+   precision mediump float;
+    out vec4 fragColor;
+    #define iResolution res
+    #define iFrame 0
+    #define HW_PERFORMANCE 0
+    #define iTime time
+    #define iMouse vec3(0.)
+
+    uniform vec2 res;
+    uniform float time;
+    `;
+  const FRAG_SHARDER_SUFFIX = `
+  void main() {
+      vec4 temp;
+      mainImage(temp, gl_FragCoord.xy);
+      fragColor = vec4(temp.xyz, 1.0);
+    }
+  `;
+  const vsSource =
+    "#version 300 es\n in vec4 aVertexPosition; void main(){gl_Position = aVertexPosition;}";
+
+  const fsSource = `
+  float sdCircle( in vec2 p, in float r ) {
+    return length(p)-r;
+  }
+
+  float expCircle(in vec2 p, in float r) {
+    return exp(length(p) / r - 1.) - 1.;
+  }
+
+
+  void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
+    vec2 p = (2.0*fragCoord-iResolution.xy)/iResolution.y;
+      vec2 m = (2.0*iMouse.xy-iResolution.xy)/iResolution.y;
+    p *= 2.0;
+    float d = 100.;
+    if (/*bool*/useExpCircle == false) {
+      d = sdCircle(p,0.5);
+    } else {
+      d = expCircle(p, 0.5);
+    }
+      
+    // coloring
+      vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
+      col *= 1.0 - exp(-6.0*abs(d));
+    col *= 0.8 + 0.2*cos(150.0*d);
+    col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
+
+      if( iMouse.z>0.001 )
+      {
+      d = sdCircle(m,0.5);
+      col = mix(col, vec3(1.0,1.0,0.0), 1.0-
+            smoothstep(0.0, 0.005, abs(length(p-m)-abs(d))-0.0025));
+      col = mix(col, vec3(1.0,1.0,0.0), 1.0-
+            smoothstep(0.0, 0.005, length(p-m)-0.015));
+      }
+
+    fragColor = vec4(col,1.0);
+  }
+  `;
+
+  var _transitions = [
+      
+    ];
+
+  const AUTO_COMPILE_DELAY_MS = 250;
+
+  const canvas = document.getElementById("canvas");
+  const controls = document.getElementById('controls');
+  const gl = canvas.getContext("webgl2");
+  const input = document.getElementById("textarea");
+  input.value = fsSource;
+  let editor;
+
+  var autoCompile = false;
+  let gShaderProgram = null;
+  let gBuffers = null;
+  let gProgramInfo = null;
+  let triggerCompilerTimeout = null;
+  let compilePromise = null;
+  let gUniforms = new Map();
+  let uniformsGui = {};
+  const guiControllers = new Map();
+  let configGui = { aspect_ratio: 1.777, width: 400, animate: false };
+  let animateController;
+  let lastTimestamp = null;
+  let gui = new dat.GUI();
+
+  function initBuffers(gl) {
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array(positions),
+      gl.STATIC_DRAW
+    );
+    return { position: positionBuffer };
+  }
+
+  function createTexture(source) {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      source
+    );
+
+    return texture;
+  }
+
+  function initShaderProgram(gl, vsSource, fsSource, lineShift) {
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource, lineShift);
+    if (vertexShader == null) {
+      return null;
+    }
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource, lineShift);
+    if (fragmentShader == null) {
+      gl.deleteShader(vertexShader);
+      return null;
+    }
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+      console.log(
+        "Unable to initialize the shader program: " +
+        gl.getProgramInfoLog(shaderProgram)
+      );
+      gl.deleteProgram(shaderProgram);
+      return null;
+    }
+    return shaderProgram;
+  }
+
+  function unique(arr) {
+    return [...new Set(arr)];
+  }
+
+  function reportErrorCompilingShader(msg, lineShift) {
+    const errorLines = unique([...msg.matchAll(/0\:\d+/g)].map(x => x[0]));
+    errorLines.forEach(l => {
+      const splt = l.split(':');
+      const newLine = parseInt(splt[1]) - lineShift + 1;
+      msg = msg.replaceAll(l, `${splt[0]}:${newLine}`);
+      editor.addLineClass(newLine - 1, 'background', 'redBackground');
+    });
+    msg = msg.replaceAll('\n', '<br>');
+    SnackBar({
+        message: msg, status: 'error', timeout: false
+      });
+  }
+
+  function loadShader(gl, type, source, lineShift) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      reportErrorCompilingShader(gl.getShaderInfoLog(shader), lineShift);
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+
+  function drawScene(canvas, gl, programInfo, buffers) {
+    canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    canvas.height = canvas.clientHeight * window.devicePixelRatio;
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    {
+      const numComponents = 2;
+      const type = gl.FLOAT;
+      const normalize = false;
+      const stride = 0;
+      const offset = 0;
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+      gl.vertexAttribPointer(
+        programInfo.attribLocations.vertexPosition,
+        numComponents,
+        type,
+        normalize,
+        stride,
+        offset
+      );
+      gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    }
+    gl.useProgram(programInfo.program);
+    gl.uniform2f(
+      programInfo.uniformLocations.res,
+      canvas.width,
+      canvas.height
+    );
+    gl.uniform1f(programInfo.uniformLocations.time, parseFloat(timeElem.innerText));
+    updateUniformValues();
+    {
+      const offset = 0;
+      const vertexCount = 4;
+      gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+    }
+  }
+
+  async function init() {
+    configGui.width = canvas.parentElement.parentElement.clientWidth;
+    editor = CodeMirror.fromTextArea(document.getElementById("textarea"), {
+      mode: "x-shader/x-fragment",
+      lineNumbers: true,
+      lineWrapping: true,
+      extraKeys: { "Ctrl-Space": "autocomplete" },
+      indentUnit: 2,
+    });
+    editor.getWrapperElement().style.height = '100%';
+    /* Auto compile */
+    editor.on('change', () => {
+      if (!autoCompile) {
+        return;
+      }
+      if (triggerCompilerTimeout) {
+        clearTimeout(triggerCompilerTimeout);
+      }
+      setTimeout(() => {
+        compilePromise = compile();
+      }, AUTO_COMPILE_DELAY_MS);
+    });
+    gBuffers = initBuffers(gl);
+    compilePromise = compile();
+    await compilePromise;
+    codeElem.style.display = 'none';
+    resizeCanvas();
+  }
+
+  init();
+
+  function defaultValueForType(type) {
+    switch (type) {
+      case 'bool':
+        return false;
+      case 'int':
+        return 0;
+      case 'float':
+        return 0.0;
+      case 'vec2':
+        return [0.0, 0.0];
+      case 'vec3':
+      case 'col':
+        return [0.0, 0.0, 0.0];
+      case 'vec4':
+        return [0.0, 0.0, 0.0, 0.0];
+    }
+    return '';
+  }
+
+  function extractUniforms() {
+    const uniforms = [...editor.getValue().matchAll(autoUniformRegex)];
+    const uniformNames = new Set(uniforms.map(u => u[2]));
+    // Remove uniforms that don't exist anymore.
+    [...gUniforms.keys()]
+      .filter(x => !uniformNames.has(x)).forEach(u => gUniforms.delete(u));
+    // Add new uniforms.
+    uniforms.forEach(u => {
+      if (!gUniforms.has(u[2]) || gUniforms.get(u[2])['type'] != u[1])
+        gUniforms.set(u[2], { type: u[1], value: defaultValueForType(u[1]) });
+    });
+    createUniformGui();
+  }
+
+  function getUniformString() {
+    let str = '';
+    gUniforms.forEach((u, name) => {
+      const type = u.type == 'col' ? 'vec3' : u.type;
+      str += `uniform ${type} ${name};`;
+    });
+    return str;
+  }
+
+  function resizeCanvas() {
+    canvas.style.width = `${configGui.width}px`;
+    canvas.style.height = `${configGui.width / configGui.aspect_ratio}px`;
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    controls.style.width = `${canvas.clientWidth}px`;
+    onUniformUpdate();
+    updateCodeEditorType();
+  }
+
+  function createReconfigGui() {
+    animateController = gui.add(configGui, 'animate').onChange(() => {
+      handleAnimateChange();
+    });
+    gui.add(window, 'autoCompile');
+    const f = gui.addFolder('Sizing');
+    f.add(configGui, 'aspect_ratio', undefined, undefined, 0.01)
+      .onChange(() => resizeCanvas());
+    f.add(configGui, 'width', 200, window.innerWidth)
+      .onChange(() => resizeCanvas());
+  }
+
+  function createUniformGui() {
+    gui.destroy();
+    guiControllers.clear();
+    uniformsGui = {};
+    gui = new dat.GUI();
+    createReconfigGui();
+    gui.hide();
+    gUniforms.forEach((u, name) => {
+      switch (u.type) {
+        case 'bool':
+        uniformsGui[name] = u.value;
+        guiControllers.set(name,
+            gui.add(uniformsGui, name).onChange(() => {
+              u.value = uniformsGui[name];
+              onUniformUpdate();
+            }));
+          return;
+        case 'int':
+        case 'float':
+          uniformsGui[name] = u.value;
+          guiControllers.set(name,
+            gui.add(uniformsGui, name, undefined, undefined, 0.01).onChange(() => {
+              u.value = uniformsGui[name];
+              onUniformUpdate();
+            }));
+          return;
+        case 'vec2':
+        case 'vec3':
+        case 'vec4':
+          uniformsGui[`${name}.x`] = u.value[0];
+          guiControllers.set(name,
+            gui.add(uniformsGui, `${name}.x`, undefined, undefined, 0.01).onChange(() => {
+              u.value[0] = uniformsGui[`${name}.x`];
+              onUniformUpdate();
+            }));
+          uniformsGui[`${name}.y`] = u.value[1];
+          guiControllers.set(name,
+            gui.add(uniformsGui, `${name}.y`, undefined, undefined, 0.01).onChange(() => {
+              u.value[1] = uniformsGui[`${name}.y`];
+              onUniformUpdate();
+            }));
+          if (u.type != 'vec2') {
+            uniformsGui[`${name}.z`] = u.value[2];
+            guiControllers.set(name,
+              gui.add(uniformsGui, `${name}.z`, undefined, undefined, 0.01).onChange(() => {
+                u.value[2] = uniformsGui[`${name}.z`];
+                onUniformUpdate();
+              }));
+          }
+          if (u.type == 'vec4') {
+            uniformsGui[`${name}.w`] = u.value[3];
+            guiControllers.set(name,
+              gui.add(uniformsGui, `${name}.w`, undefined, undefined, 0.01).onChange(() => {
+                u.value[3] = uniformsGui[`${name}.w`];
+                onUniformUpdate();
+              }));
+          }
+          return;
+        case 'col':
+          uniformsGui[name] = u.value.map(v => v * 255);
+          guiControllers.set(name,
+            gui.addColor(uniformsGui, name).onChange(() => {
+              u.value = uniformsGui[name].map(v => v / 255.0);
+              onUniformUpdate();
+            }));
+      }
+    });
+  }
+
+  function updateUniformValues() {
+    gUniforms.forEach((u, name) => {
+      const loc = gl.getUniformLocation(gShaderProgram, name);
+      switch (u.type) {
+        case 'bool':
+          gl.uniform1i(loc, u.value);
+        case 'int':
+          gl.uniform1i(loc, u.value);
+          return;
+        case 'float':
+          gl.uniform1f(loc, u.value);
+          return;
+        case 'vec2':
+          gl.uniform2fv(loc, u.value);
+          return;
+        case 'vec3':
+        case 'col':
+          gl.uniform3fv(loc, u.value);
+          return;
+        case 'vec4':
+          gl.uniform4fv(loc, u.value);
+          return;
+      }
+    });
+  }
+
+  function onUniformUpdate() {
+    drawScene(canvas, gl, gProgramInfo, gBuffers);
+  }
+
+  function clearSnackbars() {
+    [...document.getElementsByClassName('js-snackbar-container')]
+      .forEach(e => e.remove());
+    [...Array(editor.lineCount()).keys()]
+    .forEach(i => editor.removeLineClass(i, 'background'));
+  }
+
+  async function compile() {
+    const res = new Promise((resolve, reject) => {
+      clearSnackbars();
+      extractUniforms();
+      const frag_shader_prefix = FLOAT_PRECISION + getUniformString();
+      const lineShift = frag_shader_prefix.split('\n').length;
+      const fShader = frag_shader_prefix + editor.getValue() + FRAG_SHARDER_SUFFIX;
+      const shaderProg = initShaderProgram(gl, vsSource, fShader, lineShift);
+      if (!shaderProg) {
+        reject('failed');
+        return;
+      }
+      SnackBar({
+        status: 'success', message: 'Compiled successfully',
+        timeout: 1000
+      });
+      resolve(shaderProg);
+    });
+    return res.then(newProgram => {
+      compilePromise = null;
+      gl.deleteProgram(gShaderProgram);
+      gShaderProgram = newProgram;
+      gProgramInfo = {
+        program: gShaderProgram,
+        attribLocations: {
+          vertexPosition: gl.getAttribLocation(
+            gShaderProgram,
+            "aVertexPosition"
+          ),
+        },
+        uniformLocations: {
+          res: gl.getUniformLocation(gShaderProgram, "res"),
+          time: gl.getUniformLocation(gShaderProgram, "time"),
+        },
+      };
+      drawScene(canvas, gl, gProgramInfo, gBuffers);
+    });
+  }
+
+  timeElem.addEventListener("focusout", () => {
+    if (timeElem.innerText.length == 0 || timeElem.innerText == '.') {
+      timeElem.innerText = '0.00';
+    }
+    onUniformUpdate();
+  });
+  timeElem.onkeypress = event => {
+    let key = String.fromCharCode(event.keyCode);
+    const curPos = window.getSelection().getRangeAt(0).startOffset;
+    const dotPos = timeElem.innerText.search(/\./);
+    const isDigit = /[0-9]|\./.test(key);
+    if (!isDigit || (key == '.' &&  dotPos >= 0)) {
+      event.preventDefault();
+    }
+  };
+  timeElem.oninput = () => {
+    onUniformUpdate();
+  }
+
+  function updateCodeEditorType() {
+    if (canvas.clientWidth >= canvas.parentElement.parentElement.clientWidth * 0.7) {
+      codeElem.classList.add('floatingEditor');
+    } else {
+      codeElem.classList.remove('floatingEditor');
+    }
+  }
+
+  window.addEventListener('keydown', (event) => {
+    if (event.code == 'Backquote' && !event.ctrlKey) {
+      if (codeElem.style.display == 'none') {
+        codeElem.style.display = 'flex';
+        updateCodeEditorType();
+      } else {
+        codeElem.style.display = 'none';
+      }
+      event.preventDefault();
+    } else if (event.code == 'Backquote' && event.ctrlKey) {
+      if (commandElem.style.display == 'none') {
+        commandElem.style.display = '';
+        commandElem.focus();
+      } else {
+        commandElem.style.display = 'none';
+        commandElem.value = '';
+      }
+      event.preventDefault();
+    } else if (event.code == 'Digit1' && event.ctrlKey) {
+      if (gui.domElement.style.display == 'none') {
+        gui.show();
+      } else {
+        gui.hide();
+      }
+      event.preventDefault();
+    } else if (event.code == 'Digit2' && event.ctrlKey) {
+      if (controls.style.display == 'none') {
+        controls.style.display = 'flex';
+      } else {
+        controls.style.display = 'none';
+      }
+      event.preventDefault();
+    } else if (event.code == 'Enter' && event.ctrlKey) {
+      compilePromise = compile();
+      event.preventDefault();
+    } else if (event.code == 'KeyF' && event.altKey) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        document.documentElement.requestFullscreen();
+      }
+      event.preventDefault();
+    } else if (event.code == 'ArrowUp' && event.altKey) {
+      animateController.setValue(!configGui.animate);
+    } else if (event.code == 'ArrowDown' && event.altKey) {
+      timeElem.innerText = '0.000';
+      onUniformUpdate();
+    }
+  });
+
+  function handleAnimateChange() {
+    if (configGui.animate) {
+      requestAnimationFrame(animate);
+    }
+  }
+
+  function animate(timestamp) {
+    if (lastTimestamp) {
+      const elapsed = timestamp - lastTimestamp;
+      let curTime = parseFloat(timeElem.innerText);
+      curTime += elapsed / 1000.0;
+      timeElem.innerText = curTime.toFixed(3);
+    }
+    onUniformUpdate();
+    if (configGui.animate) {
+      lastTimestamp = timestamp;
+      requestAnimationFrame(animate);
+    } else {
+      lastTimestamp = null;
+    }
+  }
+
+  commandElem.addEventListener('keydown', (event) => {
+    if (event.code == 'Enter') {
+      let execStr = commandElem.value;
+      let guiVar = [...commandElem.value.matchAll(assignmentRegex)];
+      if (guiVar.length == 1 && gUniforms.has(guiVar[0][1])) {
+        const newValStr = execStr.substr(guiVar[0][0].length);
+        execStr = `interpolate('${guiVar[0][1]}', ${newValStr});`;
+        console.info(execStr);
+      }
+      try {
+        let result = eval(execStr);
+        SnackBar({ status: 'success', message: result, timeout: 1000 });
+      } catch (error) {
+        SnackBar({ status: 'error', message: error, timeout: 3000 });
+        return;
+      }
+      commandElem.style.display = 'none';
+      commandElem.value = '';
+    }
+  });
+
+  canvas.ondragover = ev => {
+    ev.preventDefault();
+  };
+
+  canvas.ondrop = ev => {
+    ev.preventDefault();
+
+    if (ev.dataTransfer.items) {
+      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+        if (ev.dataTransfer.items[i].kind != "file") {
+          continue;
+        }
+        var file = ev.dataTransfer.items[i].getAsFile();
+        createImageBitmap(file).then((img) => {
+        });
+      }
+    }
+  };
+
+  function mix(a, b, x) {
+    if (Array.isArray(a)) {
+      return a.map((v, i) => v * (1.0 - x) + b[i] * x);
+    }
+    return a * (1.0 - x) + b * x;
+  }
+  
+
+  function linstep(a, b, x) {
+    return Math.max(0.0, Math.min(1.0, (x - a) / (b - a)));
+  }
+
+  function smoothstep(a, b, x) {
+    const t = linstep(a, b, x);
+    return t * t * (3.0 - 2.0 * t);
+  }
+
+  function expEaseOut(a, b, x) {
+    const t = linstep(a, b, x);
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+  }
+
+  function interpolate(name, toVal, durationMs = 1000., func = expEaseOut) {
+    let start, end;
+    let fromVal = gUniforms.get(name).value;
+    if (Array.isArray(fromVal)) {
+      fromVal = [...fromVal];
+    }
+    const updateFunc = (timestamp) => {
+      if (start === undefined) {
+        start = timestamp;
+        end = start + durationMs;
+      }
+      if (timestamp < end) {
+        let newVal = mix(fromVal, toVal, func(start, end, timestamp));
+        gUniforms.get(name).value = newVal;
+        requestAnimationFrame(updateFunc);
+      } else {
+        gUniforms.get(name).value = toVal;
+        createUniformGui();
+      }
+      onUniformUpdate();
+    }
+    requestAnimationFrame(updateFunc);
+  }
+
+</script>
+
+</html>

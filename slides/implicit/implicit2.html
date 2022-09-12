@@ -1,16 +1,19 @@
+<div style="display: flex; flex-direction: column; justify-content: center; height: 100%">
 <h3>Code example for drawing a circle</h3>
 
 <div style="display: flex; justify-content: space-between;">
-  <div style="border: 1px solid black; width: 70%; margin-right: 20px;">
+  <div style=" width: 70%; margin-right: 20px;">
     <img src="./circ.png" />
   </div>
-  <pre data-id="imp_circ"><code data-trim data-noescape data-line-numbers="" style="font-size: large;">
+  <pre data-id="imp_circ"><code data-trim data-noescape data-line-numbers="|5|" style="font-size: large;">
     #define RADIUS 0.5
     #define RED vec3(0.8, 0.1, 0.3)
     #define WHITE vec3(1.0)
-    void main() {
-      gl_FragColor = length(p) - RADIUS < 0.? RED : WHITE;
+    void mainImage(out vec4 gl_FragColor, in vec2 p) {
+      gl_FragColor = length(p) - RADIUS < 0.
+                        ? RED : WHITE;
     }
   </code>
 </pre>
+</div>
 </div>

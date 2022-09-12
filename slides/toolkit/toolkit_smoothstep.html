@@ -2,8 +2,9 @@
 <h3>Math toolkit</h3>
 <h5>Smoothstep</h5>
 
-<div style="display: block;">
-<pre>
+<div style="display: block; position: relative; height: inherit;">
+<pre style="position: absolute; left:0; top:0;"
+class="fragment fade-out" data-fragment-index="1">
   <code data-id="code" data-trim data-noescape style="font-size: medium;">
     void main() {
       float mixFactor = sdCirc(p) < 0.? 0. : 1.;
@@ -11,9 +12,27 @@
     }
   </code>
 </pre>
+<pre style="position: absolute; left:0; top:0"
+class="fragment fade-in" data-fragment-index="1">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main() {
+        float mixFactor = linstep(-0.2, 0.2, sdCirc(p));
+        gl_FragColor = mix(RED, WHITE, mixFactor);
+      }
+    </code>
+  </pre>
+  <div class="fragment fade-out" data-fragment-index="2"></div>
+  <pre style="position: absolute; left:0; top:0"
+  class="fragment fade-in" data-fragment-index="3">
+    <code data-id="code" data-trim data-noescape data-line-numbers="2" style="font-size: medium;">
+      void main() {
+        float mixFactor = smoothstep(-0.2, 0.2, sdCirc(p));
+        gl_FragColor = mix(RED, WHITE, mixFactor);
+      }
+    </code>
+  </pre>
 </div>
 <div style="min-height: 1px; flex: auto;">
-  <!-- <img data-id="circ_img" src="circ_step.png" /> -->
   <div style="height: 100%; width: 100%; min-height: 1px;"
   class="fig-container" data-file="slides/toolkit/toolkit_smoothstep_live.html">
   </div>

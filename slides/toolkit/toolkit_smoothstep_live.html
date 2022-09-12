@@ -91,7 +91,7 @@
 
     vec4 rightSide(vec2 p) {
       float aspect_ratio = res.x / res.y;
-      p.x = (p.x - (aspect_ratio) / 2.) * 1.2 + (aspect_ratio) / 2.;
+      p.x = (p.x - (aspect_ratio) / 2.) * 1.5 + (aspect_ratio) / 2.;
       p.y = p.y * 1.2;
       float stepf = step((aspect_ratio) / 2., p.x);
       float linf = linstep(0., (aspect_ratio), p.x);
@@ -115,6 +115,8 @@
       } else {
         fragColor = rightSide(p);
       }
+      vec2 q = fragCoord.xy/res;
+      fragColor *= pow( 16.0*q.x*q.y*(1.0-q.x)*(1.0-q.y), 0.07 );
     }
   `;
 
@@ -122,12 +124,12 @@
       {
         transitionForward: () => interpolate('a', 1),
         transitionBackward: () => interpolate('a', 0),
-        index: 0
+        index: 1
       },
       {
         transitionForward: () => interpolate('b', 1),
         transitionBackward: () => interpolate('b', 0),
-        index: 1
+        index: 3
       },
     ];
 
