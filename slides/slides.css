@@ -1,8 +1,13 @@
 .title {
-  height: 100%;
+  height: 90%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  align-self: center;
+}
+
+.snail_img {
+  margin-bottom: 0;
 }
 
 .titleExamples {
@@ -22,7 +27,7 @@
 
 .titleExampleDesc {
   font-size: medium;
-  top: -20px;
+  /* top: -20px; */
 }
 
 .titleExampleCred {

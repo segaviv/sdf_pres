@@ -21,9 +21,7 @@
     <div style="height: 100%; flex: auto;
         display: flex; align-items: center; justify-content: center; 
         flex-direction: column;">
-      <canvas
-        style="height: 400px; width: 400px;"
-        id="canvas" class="canvas">
+      <canvas style="height: 400px; width: 400px;" id="canvas" class="canvas">
       </canvas>
       <div id="controls" style="width: 100%; background-color:aliceblue;
       display: flex;">
@@ -50,73 +48,74 @@
 
 
 
-  <dialog id="help_dialog" 
-  style="background-color: rgb(184 184 184 / 88%);
+  <dialog id="help_dialog" style="background-color: rgb(184 184 184 / 88%);
   border-radius: 5px;">
-  <div style="display: flex; flex-direction: column;">
-    <h4 style="align-self: center;">Help (Esc to close)</h4>
-    <p>
-      This is a mini hacked version of
-       <a href="https://www.shadertoy.com" target="_blank">Shadertoy</a>.<br>
-       It has some tricks to make it easier to fine tune variables, and plenty of shortcuts.
-    </p>
-    <table style="width: 100%; background-color: #999;">
-      <tr>
-        <th colspan="4" style="background-color: #333; color:#FFFFFF">Shortcuts</th>
-      </tr>
-      <tr style="background-color: #777;">
-        <td>⌘/Alt/Ctrl + Enter</td>
-        <td>Compile</td>
-        <td>⌘/Ctrl + 1</td>
-        <td>Show gui</td>
-      </tr>
-      <tr>
-        <td>⌥/Alt/Ctrl + F</td>
-        <td>Toggle fullscreen</td>
-        <td>⌘/Ctrl + 2</td>
-        <td>Show controls</td>
-      </tr>
-      <tr style="background-color: #777;">
-        <td>⌥/Alt + ↑	</td>
-        <td>Start/Stop time</td>
-        <td>⌥/Alt + ↓	</td>
-        <td>Reset time</td>
-      </tr>
-      <tr>
-        <td>~</td>
-        <td>Show/hide editor</td>
-        <td>Ctrl + ~</td>
-        <td>Command prompt</td>
-      </tr>
-      <tr style="background-color: #777;">
-        <td>⌘/Ctrl + S</td>
-        <td>Quick save</td>
-        <td>⌘/Ctrl + O</td>
-        <td>Quick load</td>
-      </tr>
-      <tr>
-        <td colspan="2">(Select val) ⌘/Ctrl + E</td>
-        <td colspan="2">Extract uniform</td>
-        
-      </tr>
-      <tr style="background-color: #777;">
-        <td colspan="2">(Select uniform) ⌘/Ctrl + E</td>
-        <td colspan="2">Replace with value</td>
-      </tr>
-      <tr>
-        <td colspan="2">⌘/Alt + canvas click + mouse move</td>
-        <td colspan="2">Resize canvas</td>
-      </tr>
-      <tr style="background-color: #777;">
-        <td colspan="2">canvas click + mouse move</td>
-        <td colspan="2">Control mouse variable</td>
-      </tr>
-      <tr>
-        <td colspan="2">shift + mouse move</td>
-        <td colspan="2">Make it move faster</td>
-      </tr>
-    </table>
-  </div>
+    <div style="display: flex; flex-direction: column;">
+      <h4 style="align-self: center;">Help (Esc to close)</h4>
+      <p>
+        This is a mini hacked version of
+        <a href="https://www.shadertoy.com" target="_blank">Shadertoy</a>.<br>
+        It has some tricks to make it easier to fine tune variables, and plenty
+        of shortcuts.
+      </p>
+      <table style="width: 100%; background-color: #999;">
+        <tr>
+          <th colspan="4" style="background-color: #333; color:#FFFFFF">
+            Shortcuts</th>
+        </tr>
+        <tr style="background-color: #777;">
+          <td>⌘/Alt/Ctrl + Enter</td>
+          <td>Compile</td>
+          <td>⌘/Ctrl + 1</td>
+          <td>Show gui</td>
+        </tr>
+        <tr>
+          <td>⌥/Alt/Ctrl + F</td>
+          <td>Toggle fullscreen</td>
+          <td>⌘/Ctrl + 2</td>
+          <td>Show controls</td>
+        </tr>
+        <tr style="background-color: #777;">
+          <td>⌥/Alt + ↑ </td>
+          <td>Start/Stop time</td>
+          <td>⌥/Alt + ↓ </td>
+          <td>Reset time</td>
+        </tr>
+        <tr>
+          <td>~</td>
+          <td>Show/hide editor</td>
+          <td>Ctrl + ~</td>
+          <td>Command prompt</td>
+        </tr>
+        <tr style="background-color: #777;">
+          <td>⌘/Ctrl + S</td>
+          <td>Quick save</td>
+          <td>⌘/Ctrl + O</td>
+          <td>Quick load</td>
+        </tr>
+        <tr>
+          <td colspan="2">(Select val) ⌘/Ctrl + E</td>
+          <td colspan="2">Extract uniform</td>
+
+        </tr>
+        <tr style="background-color: #777;">
+          <td colspan="2">(Select uniform) ⌘/Ctrl + E</td>
+          <td colspan="2">Replace with value</td>
+        </tr>
+        <tr>
+          <td colspan="2">⌘/Alt + canvas click + mouse move</td>
+          <td colspan="2">Resize canvas</td>
+        </tr>
+        <tr style="background-color: #777;">
+          <td colspan="2">canvas click + mouse move</td>
+          <td colspan="2">Control mouse variable</td>
+        </tr>
+        <tr>
+          <td colspan="2">shift + mouse move</td>
+          <td colspan="2">Make it move faster</td>
+        </tr>
+      </table>
+    </div>
   </dialog>
 
 </body>
@@ -311,43 +310,45 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   `;
 
   var _transitions = [
-  {
-        transitionForward: () => {interpolate('a', 1.);
+    {
+      transitionForward: () => {
+        interpolate('a', 1.);
         configGui.animate = true;
         handleAnimateChange();
-  },
-        transitionBackward: () => {interpolate('a', 0);
+      },
+      transitionBackward: () => {
+        interpolate('a', 0);
         configGui.animate = true;
         handleAnimateChange();
-},
-        index: 4
       },
-      {
-        transitionForward: () => interpolate('a', 2.),
-        transitionBackward: () => interpolate('a', 1.9),
-        index: 5
-      },
-      {
-        transitionForward: () => interpolate('a', 3.),
-        transitionBackward: () => interpolate('a', 2.9),
-        index: 6
-      },
-      {
-        transitionForward: () => interpolate('a', 4.),
-        transitionBackward: () => interpolate('a', 3.9),
-        index: 7
-      },
-      {
-        transitionForward: () => interpolate('a', 5.),
-        transitionBackward: () => interpolate('a', 4.9),
-        index: 8
-      },
-      {
-        transitionForward: () => interpolate('a',6.),
-        transitionBackward: () => interpolate('a', 5.9),
-        index: 9
-      },
-    ];
+      index: 4
+    },
+    {
+      transitionForward: () => interpolate('a', 2.),
+      transitionBackward: () => interpolate('a', 1.9),
+      index: 5
+    },
+    {
+      transitionForward: () => interpolate('a', 3.),
+      transitionBackward: () => interpolate('a', 2.9),
+      index: 6
+    },
+    {
+      transitionForward: () => interpolate('a', 4.),
+      transitionBackward: () => interpolate('a', 3.9),
+      index: 7
+    },
+    {
+      transitionForward: () => interpolate('a', 5.),
+      transitionBackward: () => interpolate('a', 4.9),
+      index: 8
+    },
+    {
+      transitionForward: () => interpolate('a', 6.),
+      transitionBackward: () => interpolate('a', 5.9),
+      index: 9
+    },
+  ];
 
   const AUTO_COMPILE_DELAY_MS = 250;
 
@@ -367,37 +368,38 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   let gUniforms = new Map();
   let uniformsGui = {};
   const guiControllers = new Map();
-  let configGui = { aspect_ratio: 1.777, width: 400, animate: false,
-  continuousMouse: true, 
-  clearStorage: () => localStorage.clear(),
-  quickSave: () => {
-    localStorage.setItem('code', editor.getValue());
-    SnackBar({
+  let configGui = {
+    aspect_ratio: 1.777, width: 400, animate: false,
+    continuousMouse: true,
+    clearStorage: () => localStorage.clear(),
+    quickSave: () => {
+      localStorage.setItem('code', editor.getValue());
+      SnackBar({
         status: 'success', message: 'Saved + Sharing URL copied to clipboard',
         timeout: 3000
       });
-  },
-  quickLoad: () => {
-    const code = localStorage.getItem('code');
-    if (!!code) {
-      editor.setValue(code);
-      SnackBar({
-        status: 'success', message: 'Loaded',
-        timeout: 1000
-      });
-      compile();
-    } else {
-      SnackBar({
-        status: 'error', message: 'No saved code exists',
-        timeout: 1000
-      });
-    }
-  },
-   };
+    },
+    quickLoad: () => {
+      const code = localStorage.getItem('code');
+      if (!!code) {
+        editor.setValue(code);
+        SnackBar({
+          status: 'success', message: 'Loaded',
+          timeout: 1000
+        });
+        compile();
+      } else {
+        SnackBar({
+          status: 'error', message: 'No saved code exists',
+          timeout: 1000
+        });
+      }
+    },
+  };
   let selectedElem, lastMousePos;
   let animateController;
   let lastTimestamp = null;
-  let mouse = {x: 0.0, y: 0.0};
+  let mouse = { x: 0.0, y: 0.0 };
   let mouseControllers = [];
   let sizeControllers = [];
   let gui = new dat.GUI();
@@ -475,8 +477,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     });
     msg = msg.replaceAll('\n', '<br>');
     SnackBar({
-        message: msg, status: 'error', timeout: false
-      });
+      message: msg, status: 'error', timeout: false
+    });
   }
 
   function loadShader(gl, type, source, lineShift) {
@@ -563,12 +565,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     gBuffers = initBuffers(gl);
     compilePromise = compile();
     await compilePromise;
+    gUniforms.get('a').value = 0.;
     codeElem.style.display = 'none';
     controls.style.display = 'none';
     resizeCanvas();
 
     if (!localStorage.getItem('help_shown')) {
-    SnackBar({
+      SnackBar({
         message: 'Press Alt/Ctrl + H for help',
         timeout: 5000
       });
@@ -609,11 +612,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // Add new uniforms.
     uniforms.forEach(u => {
       if (!gUniforms.has(u[2]) || !isSameType(gUniforms.get(u[2])['type'], u[1])) {
-          gUniforms.set(u[2], 
-          { type: u[1], 
-            value: deletedVals.length == 1 && 
-            isSameType(deletedVals[0].type, u[1])?
-            deletedVals[0].value : defaultValueForType(u[1]) });
+        gUniforms.set(u[2],
+          {
+            type: u[1],
+            value: deletedVals.length == 1 &&
+              isSameType(deletedVals[0].type, u[1]) ?
+              deletedVals[0].value : defaultValueForType(u[1])
+          });
       } else if (isSameType(gUniforms.get(u[2])['type'], u[1])) {
         gUniforms.get(u[2]).type = u[1];
       }
@@ -622,8 +627,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   }
 
   function isSameType(type1, type2) {
-    let t1 = type1 == 'col'? 'vec3' : type1,
-    t2 = type2 == 'col'? 'vec3' : type2;
+    let t1 = type1 == 'col' ? 'vec3' : type1,
+      t2 = type2 == 'col' ? 'vec3' : type2;
     return t1 == t2;
   }
 
@@ -643,7 +648,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
       canvas.style.height = `${configGui.width / configGui.aspect_ratio}px`;
     }
     const dpr = window.devicePixelRatio;
-    const displayWidth  = Math.round(canvas.clientWidth * dpr);
+    const displayWidth = Math.round(canvas.clientWidth * dpr);
     const displayHeight = Math.round(canvas.clientHeight * dpr);
     if (canvas.width == displayWidth && canvas.height == displayHeight) {
       return;
@@ -670,18 +675,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     sizeControllers = [];
     sizeControllers.push(f.add(configGui, 'aspect_ratio', undefined, undefined, 0.01)
       .onChange(() => resizeCanvas()));
-      sizeControllers.push(f.add(configGui, 'width', 200, window.innerWidth)
+    sizeControllers.push(f.add(configGui, 'width', 200, window.innerWidth)
       .onChange(() => resizeCanvas()));
 
     const f2 = gui.addFolder('Mouse');
     f2.add(configGui, 'continuousMouse');
     mouseControllers = [];
     mouseControllers.push(f2.add(mouse, 'x', undefined, undefined, 5)
-    .onChange(() => onUniformUpdate()));
+      .onChange(() => onUniformUpdate()));
     mouseControllers.push(f2.add(mouse, 'y', undefined, undefined, 5)
-    .onChange(() => onUniformUpdate()));
+      .onChange(() => onUniformUpdate()));
 
-    }
+  }
 
   function createUniformGui() {
     gui.destroy();
@@ -693,7 +698,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     gUniforms.forEach((u, name) => {
       switch (u.type) {
         case 'bool':
-        uniformsGui[name] = u.value;
+          uniformsGui[name] = u.value;
           guiControllers.set(name,
             gui.add(uniformsGui, name).onChange(() => {
               u.value = uniformsGui[name];
@@ -790,7 +795,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         }
       });
     [...Array(editor.lineCount()).keys()]
-    .forEach(i => editor.removeLineClass(i, 'background'));
+      .forEach(i => editor.removeLineClass(i, 'background'));
   }
 
   async function compile() {
@@ -848,18 +853,20 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   canvas.addEventListener('mousemove', (ev) => {
     if (selectedElem == canvas) {
       if (!configGui.continuousMouse) {
-        mouse = {x: (ev.offsetX) * canvas.width / canvas.clientWidth, 
-        y: (canvas.clientHeight - ev.offsetY) * canvas.height / canvas.clientHeight};
+        mouse = {
+          x: (ev.offsetX) * canvas.width / canvas.clientWidth,
+          y: (canvas.clientHeight - ev.offsetY) * canvas.height / canvas.clientHeight
+        };
       } else {
         if (ev.metaKey || ev.altKey) {
-          configGui.width += ev.movementX * (ev.shiftKey? 10. : 1.);
-          const newHeight = canvas.clientHeight - ev.movementY * (ev.shiftKey? 10. : 1.);
+          configGui.width += ev.movementX * (ev.shiftKey ? 10. : 1.);
+          const newHeight = canvas.clientHeight - ev.movementY * (ev.shiftKey ? 10. : 1.);
           configGui.aspect_ratio = configGui.width / newHeight;
-          sizeControllers.forEach(c=> c.updateDisplay());
+          sizeControllers.forEach(c => c.updateDisplay());
           resizeCanvas();
         } else {
-          mouse.x -= ev.movementX * (ev.shiftKey? 10. : 1.);
-          mouse.y -= ev.movementY * (ev.shiftKey? 10. : 1.);
+          mouse.x -= ev.movementX * (ev.shiftKey ? 10. : 1.);
+          mouse.y -= ev.movementY * (ev.shiftKey ? 10. : 1.);
           mouseControllers.forEach(c => c.updateDisplay());
         }
       }
@@ -878,7 +885,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     const curPos = window.getSelection().getRangeAt(0).startOffset;
     const dotPos = timeElem.innerText.search(/\./);
     const isDigit = /[0-9]|\./.test(key);
-    if (!isDigit || (key == '.' &&  dotPos >= 0)) {
+    if (!isDigit || (key == '.' && dotPos >= 0)) {
       event.preventDefault();
     }
   };
@@ -897,7 +904,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   window.addEventListener('mousemove', ev => {
     if (selectedElem === timeElem) {
       let curTime = parseFloat(timeElem.innerText);
-      curTime -= (ev.movementY - ev.movementX) / (ev.shiftKey? 10. : 100.);
+      curTime -= (ev.movementY - ev.movementX) / (ev.shiftKey ? 10. : 100.);
       timeElem.innerText = curTime.toFixed(3);
       onUniformUpdate();
     }
@@ -1008,7 +1015,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     }
     let val = uniform.value;
     if (Array.isArray(val)) {
-      val = `vec${val.length}(${val.map(x=>x.toFixed(3)).join(',')})`;
+      val = `vec${val.length}(${val.map(x => x.toFixed(3)).join(',')})`;
     } else if (uniform.type == 'float' && String(val).indexOf('.') < 0) {
       val = val.toFixed(1);
     }
@@ -1028,7 +1035,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
       if (gUniforms.has(name)) {
         continue;
       }
-      gUniforms.set(name, { type: typeAndVal.type, value: typeAndVal.val});
+      gUniforms.set(name, { type: typeAndVal.type, value: typeAndVal.val });
       return name;
     }
     return '';
@@ -1043,15 +1050,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     let type = '';
     if (variable.startsWith('vec2')) {
       val = [...variable.matchAll(vec2Vals)][0]
-      ?.slice(1)?.map(x=>parseFloat(x));
+        ?.slice(1)?.map(x => parseFloat(x));
       type = 'vec2';
     } else if (variable.startsWith('vec3')) {
       val = [...variable.matchAll(vec3Vals)][0]
-      ?.slice(1)?.map(x=>parseFloat(x));
+        ?.slice(1)?.map(x => parseFloat(x));
       type = 'vec3';
     } else if (variable.startsWith('vec4')) {
       val = [...variable.matchAll(vec4Vals)][0]
-      ?.slice(1)?.map(x=>parseFloat(x));
+        ?.slice(1)?.map(x => parseFloat(x));
       type = 'vec4';
     } else if (variable.indexOf('.') >= 0) {
       val = parseFloat(variable);
@@ -1064,9 +1071,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
       type = 'int';
     }
     if (!!val) {
-      return {type, val};
+      return { type, val };
     }
-    return {type: ''};
+    return { type: '' };
   }
 
   function handleAnimateChange() {
@@ -1085,7 +1092,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
       // Update FPS.
       if (timestamp - lastFpsTimestamp > 500) {
-        
+
       }
     }
     onUniformUpdate();
@@ -1147,7 +1154,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     }
     return a * (1.0 - x) + b * x;
   }
-  
+
 
   function linstep(a, b, x) {
     return Math.max(0.0, Math.min(1.0, (x - a) / (b - a)));
