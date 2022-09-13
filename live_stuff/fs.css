@@ -45,7 +45,7 @@ table {
 
 .collapsible:after {
   content: '\02795';
-  font-size: 13px;
+  font-size: 12px;
   color: white;
   float: right;
   margin-left: 5px;

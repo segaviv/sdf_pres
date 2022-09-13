@@ -71,7 +71,7 @@
        opacity: 97%; display: flex; align-items: center;">
        <div id="funcs" style="display: flex; flex-direction: column;
        align-self: start;">
-        <span id="togglefuncs" class="collapsible">Functions</span>
+        <span id="togglefuncs" class="collapsible">Builtins</span>
         <div style="display: block" class="content">
           <textarea id="funcstext">
           </textarea>
@@ -177,28 +177,36 @@
   const commandElem = document.getElementById('command');
   const timeElem = document.getElementById('time');
   const fpsElem = document.getElementById('fps');
-  let lastFpsTimestamp;
+  let lastFpsTimestamp, framesCount;
   const FLOAT_PRECISION = `#version 300 es
    precision mediump float;
     out vec4 fragColor;
-    #define iResolution res
-    #define iFrame 0
-    #define HW_PERFORMANCE 0
-    #define iTime time
-    #define iMouse mouse
+    `
+  const FRAG_SHADER_PREFIX = 
+`// Shadertoy compatibility
+#define iResolution res
+#define iFrame 0
+#define HW_PERFORMANCE 0
+#define iTime time
+#define iMouse mouse
 
-    uniform vec2 res;
-    uniform vec2 res0;
-    uniform vec2 res1;
-    uniform vec2 res2;
-    uniform vec2 res3;
-    uniform float time;
-    uniform vec2 mouse;
-    uniform sampler2D tex0;
-    uniform sampler2D tex1;
-    uniform sampler2D tex2;
-    uniform sampler2D tex3;
-    `;
+// Textures and their resolutions.
+uniform sampler2D tex0;
+uniform sampler2D tex1;
+uniform sampler2D tex2;
+uniform sampler2D tex3;
+uniform vec2 res0;
+uniform vec2 res1;
+uniform vec2 res2;
+uniform vec2 res3;
+
+// Screen resolution.
+uniform vec2 res;
+// Elapsed time in seconds.
+uniform float time;
+// Mouse coords (x, y, wheel).
+uniform vec3 mouse;
+`;
   const FRAG_SHARDER_SUFFIX = `
   void main() {
       vec4 temp;
@@ -212,18 +220,18 @@
   const vsSource =
     "#version 300 es\n in vec4 aVertexPosition; void main(){gl_Position = aVertexPosition;}";
 
-  const fsSource = `
-  void mainImage(out vec4 color, in vec2 pixel) {
+  const fsSource = 
+`
+void mainImage(out vec4 color, in vec2 pixel) {
 
-    vec2 p = (pixel-.5*res)/res.y;
+  vec2 p = (pixel-.5*res)/res.y;
 
-    float l=length(p),z=time;
-    for( int i=0; i<3; i++)
-      color[i] = .01/length(
-        abs(fract( pixel/res + p/l* (sin(z+=.07)+1.) 
+  float l=length(p),z=time;
+  for( int i=0; i<3; i++)
+    color[i] = .01/length(
+      abs(fract( pixel/res + p/l* (sin(z+=.07)+1.) 
       * abs(sin(l*9.-z*2.)) )-.5)) / l;
-  }
-  `;
+}`;
 
   var _transitions = [
 
@@ -256,6 +264,7 @@
   const guiControllers = new Map();
   let configGui = {
     aspect_ratio: 1.777, width: 400, animate: false,
+    builtin_funcs: true,
     endlessMouse: true,
     clearStorage: () => localStorage.clear(),
     quickSave: () => {
@@ -285,7 +294,7 @@
   let selectedElem, lastMousePos;
   let animateController;
   let lastTimestamp = null;
-  let mouse = { x: 0.0, y: 0.0 };
+  let mouse = { x: 0.0, y: 0.0, z: 0.0 };
   let mouseControllers = [];
   let sizeControllers = [];
   let gui = new dat.GUI();
@@ -408,10 +417,11 @@
       canvas.width,
       canvas.height
     );
-    gl.uniform2f(
+    gl.uniform3f(
       programInfo.uniformLocations.mouse,
       mouse.x,
       mouse.y,
+      mouse.z,
     );
     gl.uniform1f(programInfo.uniformLocations.time, parseFloat(timeElem.innerText));
     updateTextures();
@@ -432,12 +442,34 @@
 `float sdBox(vec2 p, vec2 b) {
   vec2 d = abs(p)-b;
   return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
-}`})
+}`});
+    magicFuncs.set('sdEqTriangle', { code:
+`float sdEqTriangle( in vec2 p ) {
+  const float k = sqrt(3.0);
+  p.x = abs(p.x) - 1.0;
+  p.y = p.y + 1.0/k;
+  if( p.x+k*p.y>0.0 ) p = vec2(p.x-k*p.y,-k*p.x-p.y)/2.0;
+  p.x -= clamp( p.x, -2.0, 0.0 );
+  return -length(p)*sign(p.y);
+}`});
+  magicFuncs.set('sdTriangle', {code:
+`float sdTriangle(vec2 p, vec2 p0, vec2 p1, vec2 p2 ) {
+    vec2 e0 = p1-p0, e1 = p2-p1, e2 = p0-p2;
+    vec2 v0 = p -p0, v1 = p -p1, v2 = p -p2;
+    vec2 pq0 = v0 - e0*clamp( dot(v0,e0)/dot(e0,e0), 0.0, 1.0 );
+    vec2 pq1 = v1 - e1*clamp( dot(v1,e1)/dot(e1,e1), 0.0, 1.0 );
+    vec2 pq2 = v2 - e2*clamp( dot(v2,e2)/dot(e2,e2), 0.0, 1.0 );
+    float s = sign( e0.x*e2.y - e0.y*e2.x );
+    vec2 d = min(min(vec2(dot(pq0,pq0), s*(v0.x*e0.y-v0.y*e0.x)),
+                     vec2(dot(pq1,pq1), s*(v1.x*e1.y-v1.y*e1.x))),
+                     vec2(dot(pq2,pq2), s*(v2.x*e2.y-v2.y*e2.x)));
+    return -sqrt(d.x)*sign(d.y);
+}`});
     magicFuncs.set('smin', { code:
 `float smin(float a, float b, float k) {
   float h = max( k-abs(a-b), 0.0 )/k;
   return min( a, b ) - h*h*k*0.25;
-}`})
+}`});
     magicFuncs.set('sdSegment', { code:
 `float sdSegment( in vec2 p, in vec2 a, in vec2 b ) {
   vec2 pa = p-a, ba = b-a;
@@ -449,16 +481,27 @@ magicFuncs.set('sdSphere', { code:
   return length(p) - r;
 }`});
 magicFuncs.set('hash', { code:
-`float hash(vec2 p) {
+`float hash(float p) {
+  return fract(25625.66*sin(683.12*p));
+}
+float hash(vec2 p) {
   return fract(14524.12*sin(123.34*p.x+55.1234*p.y));
 }
 float hash(vec3 p) {
   return fract(87625.123*sin(52.865*p.x+124.63*p.y+672.12*p.z));
 }`});
 magicFuncs.set('hash2', { code:
-`vec2 hash2(vec2 p) {
+`vec2 hash2(float p) {
+  return vec2(fract(82653.124*sin(473.24*p)),
+              fract(14253.64*sin(2561.3*p)));
+}
+vec2 hash2(vec2 p) {
   return vec2(fract(14524.12*sin(123.34*p.x+55.1234*p.y)),
               fract(51364.16*sin(352.21*p.x+1413.34*p.y)));
+}
+vec2 hash2(vec3 p) {
+  return vec2(fract(65234.23*sin(542.2*p.x+124.3*p.y+643.*p.z)),
+              fract(5251.4*sin(423.3*p.x+111.23*p.y+125.3*p.x)));
 }`});
 magicFuncs.set('hash3', { code:
 `vec3 hash3(vec2 p) {
@@ -491,7 +534,7 @@ magicFuncs.set('fbm', {deps: ['vnoise'], code:
   }
 
   function initFuncHelp() {
-    let str = '';
+    let str = FRAG_SHADER_PREFIX + '\n';
     [...magicFuncs.keys()].forEach(k => str += magicFuncs.get(k).code + '\n\n');
     const funcEditor = CodeMirror.fromTextArea(document.getElementById("funcstext"), {
       mode: "x-shader/x-fragment",
@@ -633,6 +676,7 @@ magicFuncs.set('fbm', {deps: ['vnoise'], code:
   }
 
   function addMagicFuncs(code) {
+    if (!configGui.builtin_funcs) { return ''; }
     const keywordsregex = /float|int|vec2|vec3|vec4/;
     const regex = new RegExp([...magicFuncs.keys()]
       .map(x => `${x}\\(`).join('\|'), 'g');
@@ -687,6 +731,7 @@ magicFuncs.set('fbm', {deps: ['vnoise'], code:
       handleAnimateChange();
     });
     gui.add(window, 'autoCompile');
+    gui.add(configGui, 'builtin_funcs');
 
     const storageFolder = gui.addFolder('storage');
     storageFolder.add(configGui, 'clearStorage');
@@ -706,7 +751,8 @@ magicFuncs.set('fbm', {deps: ['vnoise'], code:
       .onChange(() => onUniformUpdate()));
     mouseControllers.push(f2.add(mouse, 'y', undefined, undefined, 5)
       .onChange(() => onUniformUpdate()));
-
+    mouseControllers.push(f2.add(mouse, 'z', undefined, undefined, 5)
+      .onChange(() => onUniformUpdate()));
   }
 
   function createUniformGui() {
@@ -858,7 +904,8 @@ magicFuncs.set('fbm', {deps: ['vnoise'], code:
       clearSnackbars();
       extractUniforms();
       const code = editor.getValue();
-      const frag_shader_prefix = FLOAT_PRECISION + getUniformString() + addMagicFuncs(code);
+      const frag_shader_prefix = FLOAT_PRECISION + FRAG_SHADER_PREFIX
+       + getUniformString() + addMagicFuncs(code);
       const lineShift = frag_shader_prefix.split('\n').length;
       const fShader = frag_shader_prefix + code + FRAG_SHARDER_SUFFIX;
       const shaderProg = initShaderProgram(gl, vsSource, fShader, lineShift);
@@ -1162,15 +1209,20 @@ magicFuncs.set('fbm', {deps: ['vnoise'], code:
       timeElem.innerText = curTime.toFixed(3);
 
       // Update FPS.
-      if (timestamp - lastFpsTimestamp > 500) {
-
+      if (timestamp - lastFpsTimestamp > 700) {
+        const fps = framesCount / (timestamp - lastFpsTimestamp) * 1000.0;
+        fpsElem.innerText = fps.toFixed(2);
+        framesCount = 0;
+        lastFpsTimestamp = timestamp;
       }
     }
     onUniformUpdate();
+    framesCount++;
     if (configGui.animate) {
       lastTimestamp = timestamp;
       if (!lastFpsTimestamp) {
         lastFpsTimestamp = timestamp;
+        framesCount = 1;
       }
       requestAnimationFrame(animate);
     } else {
@@ -1199,6 +1251,12 @@ magicFuncs.set('fbm', {deps: ['vnoise'], code:
       commandElem.value = '';
     }
   });
+
+  canvas.onwheel = ev => {
+    mouse.z += ev.deltaY;
+    mouseControllers.forEach(c => c.updateDisplay());
+    onUniformUpdate();
+  };
 
   canvas.ondragover = ev => {
     ev.preventDefault();
