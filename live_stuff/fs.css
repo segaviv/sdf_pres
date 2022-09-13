@@ -32,3 +32,25 @@ table {
   border-collapse: collapse;
   border: 1px solid black;
 }
+
+.collapsible {
+  background-color: #eee;
+  font-size: 15px;
+
+}
+
+.active, .collapsible:hover {
+  background-color: #ccc;
+}
+
+.collapsible:after {
+  content: '\02795';
+  font-size: 13px;
+  color: white;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2796";
+}

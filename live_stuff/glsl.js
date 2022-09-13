@@ -287,8 +287,9 @@ CodeMirror.defineMode("clike", function(config, parserConfig) {
                     "reflect refract matrixCompMult " +
                     "lessThan lessThanEqual greaterThan greaterThanEqual " +
                     "equal notEqual any all not " +
-                    "texture2D texture2DLod texture2DProjLod " +
-                    "textureCube textureCubeLod "),
+                    "texture2D texture2DLod texture2DProjLod texture " +
+                    "textureCube textureCubeLod "+
+                    "sdCircle sdBox sdSegment sdSphere smin"),
     atoms: words("true false " +
                 "gl_FragColor " +
                 "gl_PointCoord " +

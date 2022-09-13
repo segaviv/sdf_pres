@@ -7,11 +7,15 @@
 <link rel="stylesheet" href="../../live_stuff/fs.css">
 <script src="../../live_stuff/codemirror.js"></script>
 <script src="../../live_stuff/glsl.js"></script>
+<script src="../../live_stuff/foldcode.js"></script>
+<script src="../../live_stuff/foldgutter.js"></script>
+<script src="../../live_stuff/matchbrackets.js"></script>
 <script src="../../live_stuff/search.js"></script>
 <script src="../../live_stuff/searchcursor.js"></script>
 <script src="../../live_stuff/dialog.js"></script>
 <link rel="stylesheet" href="../../live_stuff/js-snackbar.min.css" />
 <link rel="stylesheet" href="../../live_stuff/dialog.css" />
+<link rel="stylesheet" href="../../live_stuff/foldgutter.css" />
 <script type="text/javascript" src="../../live_stuff/show-hint.js"></script>
 <link type='text/css' rel="stylesheet" href="../../live_stuff/show-hint.css">
 
@@ -64,8 +68,16 @@
       </div>
     </div>
     <div id="code" style="top: 5%; height: 90%; margin-left: 20px;
-       opacity: 90%; display: flex; align-items: center;">
-      <textarea id="textarea" style="height: 100%; width: 100%">
+       opacity: 97%; display: flex; align-items: center;">
+       <div id="funcs" style="display: flex; flex-direction: column;
+       align-self: start;">
+        <span id="togglefuncs" class="collapsible">Functions</span>
+        <div style="display: block" class="content">
+          <textarea id="funcstext">
+          </textarea>
+        </div>
+       </div>
+      <textarea id="textarea" style="height: 100%;">
       </textarea>
     </div>
   </div>
@@ -73,8 +85,6 @@
     position: absolute; bottom: 0px; left: 10px; right: 10px;">
     <input id="command" style="width: 100%; display: none;">
   </div>
-
-
 
   <dialog id="help_dialog" style="background-color: rgb(184 184 184 / 88%);
   border-radius: 5px;">
@@ -246,7 +256,7 @@
   const guiControllers = new Map();
   let configGui = {
     aspect_ratio: 1.777, width: 400, animate: false,
-    continuousMouse: true,
+    endlessMouse: true,
     clearStorage: () => localStorage.clear(),
     quickSave: () => {
       localStorage.setItem('code', editor.getValue());
@@ -414,24 +424,102 @@
   }
 
   function initializeMagicFuncs() {
-    magicFuncs.set('sdCircle',
-      `float sdCircle(vec2 p, float r) {
-         return length(p) - r;
-       }`);
-    magicFuncs.set('sdBox',
-      `float sdBox(vec2 p, vec2 b) {
-          vec2 d = abs(p)-b;
-          return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
-        }`)
-    magicFuncs.set('smin',
-      `float smin(float a, float b, float k) {
-           float h = max( k-abs(a-b), 0.0 )/k;
-           return min( a, b ) - h*h*k*0.25;
-        }`)
+    magicFuncs.set('sdCircle',{ code:
+`float sdCircle(vec2 p, float r) {
+  return length(p) - r;
+}`});
+    magicFuncs.set('sdBox', { code:
+`float sdBox(vec2 p, vec2 b) {
+  vec2 d = abs(p)-b;
+  return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
+}`})
+    magicFuncs.set('smin', { code:
+`float smin(float a, float b, float k) {
+  float h = max( k-abs(a-b), 0.0 )/k;
+  return min( a, b ) - h*h*k*0.25;
+}`})
+    magicFuncs.set('sdSegment', { code:
+`float sdSegment( in vec2 p, in vec2 a, in vec2 b ) {
+  vec2 pa = p-a, ba = b-a;
+  float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+  return length( pa - ba*h );
+}`});
+magicFuncs.set('sdSphere', { code:
+`float sdSphere(in vec2 p, float r) {
+  return length(p) - r;
+}`});
+magicFuncs.set('hash', { code:
+`float hash(vec2 p) {
+  return fract(14524.12*sin(123.34*p.x+55.1234*p.y));
+}
+float hash(vec3 p) {
+  return fract(87625.123*sin(52.865*p.x+124.63*p.y+672.12*p.z));
+}`});
+magicFuncs.set('hash2', { code:
+`vec2 hash2(vec2 p) {
+  return vec2(fract(14524.12*sin(123.34*p.x+55.1234*p.y)),
+              fract(51364.16*sin(352.21*p.x+1413.34*p.y)));
+}`});
+magicFuncs.set('hash3', { code:
+`vec3 hash3(vec2 p) {
+  return vec3(fract(14524.12*sin(123.34*p.x+55.1234*p.y)),
+              fract(51364.16*sin(352.21*p.x+1413.34*p.y)),
+              fract(96234.55*sin(56.13*p.x+235.142*p.y)));
+}`});
+magicFuncs.set('vnoise', {deps: ['hash'], code:
+`float vnoise(vec2 p){
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f*f*(3.0-2.0*f);
+
+  return mix(
+      mix(hash(i), hash(i + vec2(1.0,0.0)),f.x),
+      mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0,1.0)), f.x),
+      f.y);
+}`});
+magicFuncs.set('fbm', {deps: ['vnoise'], code:
+`float fbm(vec2 p) {
+  float res = 0.;
+  float amp = 0.5;
+  for (int i = 0; i < 8; i++) {
+    res += amp * vnoise(p);
+    amp *= 0.5;
+    p *= 2.;
+  }
+  return res;
+}`});
+  }
+
+  function initFuncHelp() {
+    let str = '';
+    [...magicFuncs.keys()].forEach(k => str += magicFuncs.get(k).code + '\n\n');
+    const funcEditor = CodeMirror.fromTextArea(document.getElementById("funcstext"), {
+      mode: "x-shader/x-fragment",
+      lineNumbers: true,
+      readOnly: true,
+      lineWrapping: true,
+      matchBrackets: true,
+      indentUnit: 2,
+    });
+    funcEditor.setValue(str);
+
+    [...document.getElementsByClassName('collapsible')].forEach(e => {
+      e.addEventListener("click", function() {
+      this.classList.toggle("active");
+      var content = this.nextElementSibling;
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    })});
+    [...document.getElementsByClassName('content')]
+    .forEach(e => e.style.display = 'none');
   }
 
   async function init() {
     initializeMagicFuncs();
+    initFuncHelp();
     const code = getUrlParam('code');
     if (!!code) {
       input.value = code;
@@ -441,7 +529,11 @@
       mode: "x-shader/x-fragment",
       lineNumbers: true,
       lineWrapping: true,
-      extraKeys: { "Ctrl-Space": "autocomplete" },
+      matchBrackets: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+      extraKeys: { "Ctrl-Space": "autocomplete",
+      "Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); } },
       indentUnit: 2,
     });
     editor.getWrapperElement().style.height = '100%';
@@ -555,8 +647,17 @@
         functionsToAdd.add(fname);
       }
     });
+    // Ugly code below.
     let str = '';
-    functionsToAdd.forEach(f => str += `${magicFuncs.get(f)}\n`);
+    const addFunc = f => {
+      if (functionsToAvoid.has(f)) { return; }
+      const funcDetails = magicFuncs.get(f);
+      // Recursively add dependencies.
+      funcDetails.deps?.forEach(d => addFunc(d));
+      str += `${funcDetails.code}\n`
+      functionsToAvoid.add(f);
+    };
+    functionsToAdd.forEach(f => addFunc(f));
     return str;
   }
 
@@ -599,7 +700,7 @@
       .onChange(() => resizeCanvas()));
 
     const f2 = gui.addFolder('Mouse');
-    f2.add(configGui, 'continuousMouse');
+    f2.add(configGui, 'endlessMouse');
     mouseControllers = [];
     mouseControllers.push(f2.add(mouse, 'x', undefined, undefined, 5)
       .onChange(() => onUniformUpdate()));
@@ -808,14 +909,14 @@
 
   canvas.addEventListener('mousedown', (ev) => {
     selectedElem = canvas;
-    if (configGui.continuousMouse) {
+    if (configGui.endlessMouse) {
       canvas.requestPointerLock();
     }
   });
 
   canvas.addEventListener('mousemove', (ev) => {
     if (selectedElem == canvas) {
-      if (!configGui.continuousMouse) {
+      if (!configGui.endlessMouse) {
         mouse = {
           x: (ev.offsetX) * canvas.width / canvas.clientWidth,
           y: (canvas.clientHeight - ev.offsetY) * canvas.height / canvas.clientHeight
@@ -829,7 +930,7 @@
           resizeCanvas();
         } else {
           mouse.x -= ev.movementX * (ev.shiftKey ? 10. : 1.);
-          mouse.y -= ev.movementY * (ev.shiftKey ? 10. : 1.);
+          mouse.y += ev.movementY * (ev.shiftKey ? 10. : 1.);
           mouseControllers.forEach(c => c.updateDisplay());
         }
       }
