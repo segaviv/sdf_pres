@@ -1,1 +1,0 @@
-{"mappings":"ACAA,+BAKA","sources":["figs/rm.6868b8c3.css","figs/rm.css"],"sourcesContent":[".canvas {\n  width: 100%;\n  height: 100%;\n}\n\n.body {\n  overflow-y: hidden;\n}\n\n/*# sourceMappingURL=rm.6868b8c3.css.map */\n",".canvas {\n  width: 100%;\n  height: 100%;\n}\n\n.body {\n  overflow-y: hidden;\n}"],"names":[],"version":3,"file":"rm.6868b8c3.css.map"}
