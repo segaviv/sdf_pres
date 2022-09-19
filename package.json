@@ -4,7 +4,7 @@
   "description": "SDF presentation.",
   "scripts": {
     "start": "parcel *.html  figs/*.html slides/*.html slides/*/*.html",
-    "predeploy": "rm -rf dist && parcel build --public-url 'https://segaviv.github.io/sdf_pres' *.html  figs/*.html slides/*.html slides/*/*.html slides/res/*",
+    "predeploy": "rm -rf dist && parcel build --public-url 'https://segaviv.github.io/sdf_pres' *.html  figs/*.html slides/*.html slides/*/*.html",
     "deploy": "gh-pages -d dist"
   },
   "author": "",
