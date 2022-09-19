@@ -255,7 +255,7 @@ float map( vec2 pos )
             #endif
 
             
-            d = min( d, sdBranch( pt_n, w, w*widf, l ) + clamp(float(i)-/*float*/a, 0., 1.) );
+            d = min( d, sdBranch( pt_n, w, w*widf, l ) + clamp(float(i)-/*float*/acont, 0., 1.) );
      	}
         
     	c++;
@@ -312,40 +312,40 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   var _transitions = [
     {
       transitionForward: () => {
-        interpolate('a', 1.);
+        interpolate('acont', 1.);
         configGui.animate = true;
         handleAnimateChange();
       },
       transitionBackward: () => {
-        interpolate('a', 0);
+        interpolate('acont', 0);
         configGui.animate = true;
         handleAnimateChange();
       },
       index: 4
     },
     {
-      transitionForward: () => interpolate('a', 2.),
-      transitionBackward: () => interpolate('a', 1.9),
+      transitionForward: () => interpolate('acont', 2.),
+      transitionBackward: () => interpolate('acont', 1.9),
       index: 5
     },
     {
-      transitionForward: () => interpolate('a', 3.),
-      transitionBackward: () => interpolate('a', 2.9),
+      transitionForward: () => interpolate('acont', 3.),
+      transitionBackward: () => interpolate('acont', 2.9),
       index: 6
     },
     {
-      transitionForward: () => interpolate('a', 4.),
-      transitionBackward: () => interpolate('a', 3.9),
+      transitionForward: () => interpolate('acont', 4.),
+      transitionBackward: () => interpolate('acont', 3.9),
       index: 7
     },
     {
-      transitionForward: () => interpolate('a', 5.),
-      transitionBackward: () => interpolate('a', 4.9),
+      transitionForward: () => interpolate('acont', 5.),
+      transitionBackward: () => interpolate('acont', 4.9),
       index: 8
     },
     {
-      transitionForward: () => interpolate('a', 6.),
-      transitionBackward: () => interpolate('a', 5.9),
+      transitionForward: () => interpolate('acont', 6.),
+      transitionBackward: () => interpolate('acont', 5.9),
       index: 9
     },
   ];
@@ -565,7 +565,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     gBuffers = initBuffers(gl);
     compilePromise = compile();
     await compilePromise;
-    gUniforms.get('a').value = 0.;
     codeElem.style.display = 'none';
     controls.style.display = 'none';
     resizeCanvas();
